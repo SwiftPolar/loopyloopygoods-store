@@ -22,5 +22,38 @@ module.exports = defineConfig({
         userCollection: process.env.PAYLOAD_USER_COLLECTION || "users",
       },
     },
+    {
+      resolve: "@medusajs/medusa/notification",
+      options: {
+        providers: [
+          // Local provider for development
+          {
+            resolve: "@medusajs/medusa/notification-local",
+            id: "local",
+            options: {
+              name: "Local Notification Provider",
+              channels: ["feed"],
+            },
+          },
+          // Nodemailer provider for email notifications
+          {
+            resolve:
+              "@perseidesjs/notification-nodemailer/providers/nodemailer",
+            id: "nodemailer",
+            options: {
+              channels: ["email"],
+              from: process.env.SMTP_FROM,
+              host: process.env.SMTP_HOST,
+              port: Number(process.env.SMTP_PORT) || 587,
+              secure: process.env.SMTP_SECURE === "true",
+              auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS,
+              },
+            },
+          },
+        ],
+      },
+    },
   ],
 });
