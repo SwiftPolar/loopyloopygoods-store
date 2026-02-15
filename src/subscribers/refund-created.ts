@@ -2,44 +2,32 @@ import { SubscriberArgs, type SubscriberConfig } from "@medusajs/framework"
 import { Modules } from "@medusajs/framework/utils"
 import { renderTemplate, EmailTemplate, formatCurrency } from "../lib/email-templates"
 
-type RefundCreatedData = {
+type PaymentRefundedData = {
   id: string
 }
 
-export default async function refundCreatedHandler({
+export default async function paymentRefundedHandler({
   event: { data },
   container,
-}: SubscriberArgs<RefundCreatedData>) {
+}: SubscriberArgs<PaymentRefundedData>) {
   const query = container.resolve("query")
   const notificationModuleService = container.resolve(Modules.NOTIFICATION)
 
-  // Fetch the refund with its associated payment and order
-  const { data: [refund] } = await query.graph({
-    entity: "refund",
+  // Fetch the payment with its refunds and linked order
+  const { data: [payment] } = await query.graph({
+    entity: "payment",
     fields: [
       "*",
-      "payment.*",
-      "payment.payment_collection.*",
+      "refunds.*",
+      "payment_collection.order.*",
+      "payment_collection.order.customer.*",
     ],
     filters: { id: data.id },
   })
 
-  if (!refund) return
+  if (!payment) return
 
-  // Find the order associated with this refund via payment collection
-  const paymentCollectionId = refund.payment?.payment_collection?.id
-  if (!paymentCollectionId) return
-
-  const { data: orders } = await query.graph({
-    entity: "order",
-    fields: [
-      "*",
-      "customer.*",
-    ],
-    filters: { payment_collections: { id: paymentCollectionId } } as any,
-  })
-
-  const order = orders?.[0]
+  const order = (payment as any).payment_collection?.order
   if (!order) return
 
   const email = order.email || order.customer?.email
@@ -51,7 +39,11 @@ export default async function refundCreatedHandler({
     ? [order.customer.first_name, order.customer.last_name].filter(Boolean).join(" ")
     : ""
 
-  const refundAmount = refund.amount ?? 0
+  // Get the most recent refund amount, or sum all refunds
+  const latestRefund = payment.refunds?.sort(
+    (a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  )?.[0]
+  const refundAmount = latestRefund?.amount ?? 0
 
   const { subject, html } = renderTemplate(EmailTemplate.REFUND_PROCESSED, {
     order_number: String(order.display_id ?? order.id),
@@ -84,5 +76,5 @@ The refund should appear in your account within 5-10 business days, depending on
 }
 
 export const config: SubscriberConfig = {
-  event: "refund.created",
+  event: "payment.refunded",
 }

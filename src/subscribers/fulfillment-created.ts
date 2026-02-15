@@ -14,31 +14,23 @@ export default async function fulfillmentCreatedHandler({
   const query = container.resolve("query")
   const notificationModuleService = container.resolve(Modules.NOTIFICATION)
 
+  // Query fulfillment with its linked order in one go
   const { data: [fulfillment] } = await query.graph({
     entity: "fulfillment",
     fields: [
       "*",
       "items.*",
       "labels.*",
+      "order.*",
+      "order.items.*",
+      "order.customer.*",
     ],
     filters: { id: data.id },
   })
 
   if (!fulfillment) return
 
-  // Get the order associated with this fulfillment
-  const { data: orders } = await query.graph({
-    entity: "order",
-    fields: [
-      "*",
-      "items.*",
-      "customer.*",
-      "fulfillments.*",
-    ],
-    filters: { fulfillments: { id: data.id } } as any,
-  })
-
-  const order = orders?.[0]
+  const order = (fulfillment as any).order
   if (!order) return
 
   const email = order.email || order.customer?.email
@@ -111,5 +103,5 @@ ${itemsList}
 }
 
 export const config: SubscriberConfig = {
-  event: "fulfillment.created",
+  event: "shipment.created",
 }
