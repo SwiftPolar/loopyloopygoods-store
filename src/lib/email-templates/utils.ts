@@ -10,3 +10,17 @@ export function interpolate(template: string, data: TemplateData): string {
     return value !== undefined ? String(value) : match
   })
 }
+
+/**
+ * Formats a currency amount from the smallest unit (e.g. cents) to a display string.
+ * Medusa stores amounts as integers in the smallest currency unit.
+ */
+export function formatCurrency(amount: number, currencyCode: string = "usd"): string {
+  const divisor = 100
+  const value = amount / divisor
+
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: currencyCode.toUpperCase(),
+  }).format(value)
+}
