@@ -1,16 +1,9 @@
+import { colors } from "../colors"
+
 interface BaseTemplateProps {
   content: string;
   previewText?: string;
 }
-
-// Brand colors from storefront (converted from OKLCH to hex)
-const colors = {
-  background: "#f8efd4",
-  primary: "#436a60",
-  footer: "#e9d0e8",
-  muted: "#6B7280",
-  border: "#E5E7EB",
-};
 
 export function baseTemplate({
   content,
