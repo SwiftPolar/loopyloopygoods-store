@@ -33,15 +33,30 @@ export default async function orderPlacedHandler({
 
   const currencyCode = order.currency_code || "usd"
 
-  // Build items HTML rows
+  // Build items HTML blocks (one table per item, name+variant | price)
   const itemsHtml = order.items
     ?.map(
       (item: any) => `
-        <tr style="border-bottom: 1px solid ${colors.border};">
-          <td style="padding: 12px 0; font-size: 14px; color: ${colors.primary};">${item.title}${item.variant_title ? ` - ${item.variant_title}` : ""}</td>
-          <td style="padding: 12px 0; font-size: 14px; color: ${colors.primary}; text-align: center;">${item.quantity}</td>
-          <td style="padding: 12px 0; font-size: 14px; color: ${colors.primary}; text-align: right;">${formatCurrency(item.unit_price * item.quantity, currencyCode)}</td>
-        </tr>`
+        <div style="padding:0px 0px 0px 0px">
+          <table align="center" width="100%" cellpadding="0" border="0"
+            style="table-layout:fixed;border-collapse:collapse">
+            <tbody style="width:100%">
+              <tr style="width:100%">
+                <td style="box-sizing:content-box;vertical-align:middle;padding-left:0;padding-right:10px">
+                  <div style="font-size:16px;font-weight:bold;text-align:left;padding:0px 0px 4px 0px">
+                    ${item.title}
+                  </div>
+                  ${item.variant_title ? `<div style="color:${colors.secondary};font-size:14px;font-weight:normal;text-align:left;padding:0px 0px 0px 0px">${item.variant_title}</div>` : ""}
+                </td>
+                <td style="box-sizing:content-box;vertical-align:middle;padding-left:10px;padding-right:0;width:80px">
+                  <div style="font-size:16px;font-weight:bold;text-align:right;padding:0px 0px 0px 0px">
+                    ${formatCurrency(item.unit_price * item.quantity, currencyCode)}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>`
     )
     .join("") || ""
 

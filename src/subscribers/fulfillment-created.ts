@@ -44,7 +44,7 @@ export default async function fulfillmentCreatedHandler({
   const trackingNumber = fulfillment.labels?.[0]?.tracking_number || ""
   const trackingUrl = fulfillment.labels?.[0]?.tracking_url || ""
 
-  // Build items HTML rows from fulfillment items
+  // Build items HTML blocks from fulfillment items (name+variant, no price)
   const itemsHtml = fulfillment.items
     ?.map(
       (fItem: any) => {
@@ -52,10 +52,21 @@ export default async function fulfillmentCreatedHandler({
         const title = orderItem?.title || fItem.title || "Item"
         const variantTitle = orderItem?.variant_title
         return `
-        <tr style="border-bottom: 1px solid ${colors.border};">
-          <td style="padding: 12px 0; font-size: 14px; color: ${colors.primary};">${title}${variantTitle ? ` - ${variantTitle}` : ""}</td>
-          <td style="padding: 12px 0; font-size: 14px; color: ${colors.primary}; text-align: center;">${fItem.quantity}</td>
-        </tr>`
+        <div style="padding:0px 0px 0px 0px">
+          <table align="center" width="100%" cellpadding="0" border="0"
+            style="table-layout:fixed;border-collapse:collapse">
+            <tbody style="width:100%">
+              <tr style="width:100%">
+                <td style="box-sizing:content-box;vertical-align:middle;padding-left:0;padding-right:0">
+                  <div style="font-size:16px;font-weight:bold;text-align:left;padding:0px 0px 4px 0px">
+                    ${title}
+                  </div>
+                  ${variantTitle ? `<div style="color:${colors.secondary};font-size:14px;font-weight:normal;text-align:left;padding:0px 0px 0px 0px">${variantTitle}</div>` : ""}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>`
       }
     )
     .join("") || ""

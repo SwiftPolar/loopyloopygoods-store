@@ -18,12 +18,14 @@ export enum EmailTemplate {
 
 interface TemplateConfig {
   subject: string
+  footerType?: "social" | "simple"
   render: (data: TemplateData) => string
 }
 
 const templates: Record<EmailTemplate, TemplateConfig> = {
   [EmailTemplate.PASSWORD_RESET]: {
     subject: "Reset Your Password",
+    footerType: "simple",
     render: passwordResetTemplate,
   },
   [EmailTemplate.ORDER_CONFIRMATION]: {
@@ -60,7 +62,8 @@ export function renderTemplate(
   const content = template.render(data)
   const html = baseTemplate({
     content,
-    previewText: template.subject,
+    order_number: typeof data.order_number === "string" ? data.order_number : undefined,
+    footer_type: template.footerType ?? "social",
   })
 
   return {
