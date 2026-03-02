@@ -77,7 +77,9 @@ export default async function orderPlacedHandler({
     : ""
 
   const subtotal = order.item_subtotal ?? 0
-  const shippingTotal = order.shipping_total ?? 0
+  const shippingTotal = order.shipping_methods?.reduce(
+    (sum: number, method: any) => sum + (method.amount ?? 0), 0
+  ) ?? 0
   const total = order.total ?? 0
 
   const { subject, html } = renderTemplate(EmailTemplate.ORDER_CONFIRMATION, {
